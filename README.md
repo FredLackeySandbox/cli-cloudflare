@@ -8,7 +8,32 @@ Command-line interface for [Cloudflare](https://www.cloudflare.com) zone, DNS, a
 npm install -g @fredlackey/cli-cloudflare
 ```
 
-## Configure
+## Usage
+
+Every command accepts credentials directly as flags. No setup step is required.
+
+```
+cloudflare zone list --api-token <token>
+cloudflare dns list --zone example.com --api-token <token>
+cloudflare dns create \
+  --api-token <token> \
+  --zone example.com \
+  --type A \
+  --name www \
+  --content 192.168.1.1
+```
+
+If you've already run `cloudflare configure`, you can omit the credential flags:
+
+```
+cloudflare zone list
+cloudflare accounts catalog --zone "*.com"
+cloudflare token verify
+```
+
+## Configure (Optional)
+
+**The `configure` command is optional.** Every command accepts credentials directly as flags (e.g. `--api-token`, `--account-id`). You never need to run `configure` to use this tool. It exists as a convenience so you don't have to pass the same flags on every invocation.
 
 ```
 cloudflare configure \
@@ -18,18 +43,12 @@ cloudflare configure \
 
 Running `cloudflare configure` without flags prompts for each value interactively. Credentials are stored in `~/.config/cli-cloudflare/config.json` and that file is the only config source. There are no environment variables to set.
 
-## Usage
+If a required credential is missing at runtime, the error tells you exactly what to do:
 
-```
-cloudflare zone list
-cloudflare dns list --zone example.com
-cloudflare dns create \
-  --zone example.com \
-  --type A \
-  --name www \
-  --content 192.168.1.1
-cloudflare accounts catalog --zone "*.com"
-cloudflare token verify
+```json
+{
+  "error": "Missing required value: --api-token. Pass it as a flag or run \"cloudflare configure\"."
+}
 ```
 
 ## Full Command Reference
