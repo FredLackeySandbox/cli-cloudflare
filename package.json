@@ -1,6 +1,6 @@
 {
   "name": "@fredlackey/cli-cloudflare",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "AI-first CLI for Cloudflare zone, DNS, and token management",
   "author": {
     "name": "Fred Lackey",
@@ -29,7 +29,7 @@
   },
   "type": "module",
   "bin": {
-    "cloudflare": "./src/bin/cloudflare.js"
+    "cloudflare": "src/bin/cloudflare.js"
   },
   "scripts": {
     "start": "node src/bin/cloudflare.js"
