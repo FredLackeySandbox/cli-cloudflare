@@ -9,8 +9,9 @@
  * Either way, the process exits 1.
  *
  * Errors may carry extra metadata via `err.code` and `err.detail`.
- * Errors from axios additionally carry `err.response.status` and
- * `err.response.data` which get unwrapped into `httpStatus` / `httpBody`.
+ * HTTP-layer failures may additionally carry `err.httpStatus` /
+ * `err.httpBody` or the legacy `err.response.status` /
+ * `err.response.data` shape.
  */
 
 import chalk from 'chalk';
@@ -18,6 +19,8 @@ import { getRuntime } from './runtime.js';
 
 export function fatalError(err) {
   const runtime = getRuntime();
+  const httpStatus = err?.httpStatus ?? err?.response?.status;
+  const httpBody = err?.httpBody ?? err?.response?.data;
 
   if (runtime.json) {
     const payload = {
@@ -25,16 +28,16 @@ export function fatalError(err) {
     };
     if (err?.code) payload.code = err.code;
     if (err?.detail !== undefined) payload.detail = err.detail;
-    if (err?.response?.status) payload.httpStatus = err.response.status;
-    if (err?.response?.data !== undefined) payload.httpBody = err.response.data;
+    if (httpStatus) payload.httpStatus = httpStatus;
+    if (httpBody !== undefined) payload.httpBody = httpBody;
     process.stderr.write(JSON.stringify(payload) + '\n');
   } else {
     const msg = err?.message || String(err);
     process.stderr.write(chalk.red('Error: ') + msg + '\n');
-    if (err?.response?.data !== undefined) {
-      const body = typeof err.response.data === 'string'
-        ? err.response.data
-        : JSON.stringify(err.response.data, null, 2);
+    if (httpBody !== undefined) {
+      const body = typeof httpBody === 'string'
+        ? httpBody
+        : JSON.stringify(httpBody, null, 2);
       process.stderr.write(chalk.dim(body) + '\n');
     }
   }
