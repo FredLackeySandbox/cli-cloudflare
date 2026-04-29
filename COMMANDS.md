@@ -21,6 +21,33 @@ Every subcommand (except `configure`) accepts these credential flags. They are o
 
 ---
 
+## Catalog
+
+Write one JSON file per zone under `{path}/{datestamp}/`.
+
+### catalog
+
+```
+cloudflare catalog --path <dir> [--date <YYYYMMDD|YYYYMMDDHHmm|YYYYMMDDHHmmss>] [--zone <pattern>] [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+```
+
+| Flag | Required | Description |
+|---|---|---|
+| `--path <dir>` | Yes | Base directory where catalog files should be written |
+| `--date <stamp>` | No | Date stamp in `YYYYMMDD`, `YYYYMMDDHHmm`, or `YYYYMMDDHHmmss` format. Defaults to the current local timestamp in `YYYYMMDDHHmmss`. |
+| `--zone <pattern>` | No | Zone name filter (supports `*` and `?` wildcards) |
+
+The command creates files like:
+
+```
+<path>/<datestamp>/<zone>.json
+```
+
+Each file contains the same per-zone payload shape used by `accounts catalog`:
+zone metadata, `dnsRecords` count, and the full `records` array.
+
+---
+
 ## Accounts
 
 Account operations.

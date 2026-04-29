@@ -8,6 +8,7 @@ import { Command } from 'commander';
 import { setForceJson, setForceInteractive } from './utils/runtime.js';
 import { fatalError } from './utils/errors.js';
 import { configureCommand } from './commands/configure.js';
+import { catalogCommand } from './commands/catalog.js';
 import { zoneCommand } from './commands/zone.js';
 import { dnsCommand } from './commands/dns.js';
 import { tokenCommand } from './commands/token.js';
@@ -34,6 +35,7 @@ export async function cli(argv) {
     });
 
   program.addCommand(configureCommand());
+  program.addCommand(catalogCommand());
   program.addCommand(zoneCommand());
   program.addCommand(dnsCommand());
   program.addCommand(tokenCommand());

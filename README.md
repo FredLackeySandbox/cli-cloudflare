@@ -15,6 +15,7 @@ Every command accepts credentials directly as flags. No setup step is required.
 ```
 cloudflare zone list --api-token <token>
 cloudflare dns list --zone example.com --api-token <token>
+cloudflare catalog --path ./catalogs --account-id <id> --api-token <token>
 cloudflare dns create \
   --api-token <token> \
   --zone example.com \
@@ -27,6 +28,7 @@ If you've already run `cloudflare configure`, you can omit the credential flags:
 
 ```
 cloudflare zone list
+cloudflare catalog --path ./catalogs --account-id <id>
 cloudflare accounts catalog --zone "*.com"
 cloudflare token verify
 ```
