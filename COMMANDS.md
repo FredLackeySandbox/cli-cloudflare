@@ -16,35 +16,39 @@ Every subcommand (except `configure`) accepts these credential flags. They are o
 | Flag | Description |
 |---|---|
 | `--api-token <token>` | Cloudflare API token |
+| `--api-key <token>` | Alias for `--api-token` |
 | `--account-id <id>` | Cloudflare account ID (required for some ops) |
+| `--account <id>` | Alias for `--account-id` |
 | `--api-base-url <url>` | Cloudflare API base URL |
 
 ---
 
 ## Catalog
 
-Write one JSON file per zone under `{path}/{datestamp}/`.
+Write a selected-zone catalog under `{path}/{datestamp}/` in either `simple` or `full` mode. To prevent accidental account-wide runs, you must pass one or more `--zone` values or explicit `--all`.
+
+`simple` mode writes one JSON file per selected zone.
+
+`full` mode writes:
+`zones.json`
+`zones/<zone>/zone-details.json`
+`zones/<zone>/zone-settings.json`
+`zones/<zone>/page-rules.json`
+`zones/<zone>/dns-records.json`
 
 ### catalog
 
 ```
-cloudflare catalog --path <dir> [--date <YYYYMMDD|YYYYMMDDHHmm|YYYYMMDDHHmmss>] [--zone <pattern>] [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare catalog --path <dir> [--date <YYYYMMDD|YYYYMMDDHHmm|YYYYMMDDHHmmss>] [--mode <simple|full>] (--zone <name-or-id> ... | --all) [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 | Flag | Required | Description |
 |---|---|---|
 | `--path <dir>` | Yes | Base directory where catalog files should be written |
 | `--date <stamp>` | No | Date stamp in `YYYYMMDD`, `YYYYMMDDHHmm`, or `YYYYMMDDHHmmss` format. Defaults to the current local timestamp in `YYYYMMDDHHmmss`. |
-| `--zone <pattern>` | No | Zone name filter (supports `*` and `?` wildcards) |
-
-The command creates files like:
-
-```
-<path>/<datestamp>/<zone>.json
-```
-
-Each file contains the same per-zone payload shape used by `accounts catalog`:
-zone metadata, `dnsRecords` count, and the full `records` array.
+| `--mode <simple\|full>` | No | Output mode. `simple` is default. `full` writes the multi-file catalog tree. |
+| `--zone <name-or-id>` | Conditionally | Exact zone name or zone ID to catalog. Repeat the flag to include multiple zones. |
+| `--all` | Conditionally | Catalog every zone in the account. Mutually exclusive with `--zone`. |
 
 ---
 
@@ -57,7 +61,7 @@ Account operations.
 List all accounts (all pages).
 
 ```
-cloudflare accounts list [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare accounts list [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 ### accounts catalog
@@ -65,7 +69,7 @@ cloudflare accounts list [--api-token <token>] [--account-id <id>] [--api-base-u
 Catalog all zones and DNS records for an account (requires `--account-id`).
 
 ```
-cloudflare accounts catalog [--api-token <token>] [--account-id <id>] [--api-base-url <url>] [--zone <pattern>]
+cloudflare accounts catalog [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>] [--zone <pattern>]
 ```
 
 | Flag | Required | Description |
@@ -81,14 +85,17 @@ Write Cloudflare credentials to `~/.config/cli-cloudflare/config.json`.
 ### configure
 
 ```
-cloudflare configure [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare configure [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>] [--reset]
 ```
 
 | Flag | Required | Description |
 |---|---|---|
 | `--api-token <token>` | No | Cloudflare API token |
+| `--api-key <token>` | No | Alias for `--api-token` |
 | `--account-id <id>` | No | Cloudflare account ID (optional) |
+| `--account <id>` | No | Alias for `--account-id` |
 | `--api-base-url <url>` | No | Cloudflare API base URL (optional) |
+| `--reset` | No | Remove the saved config file and exit |
 
 In interactive mode (TTY), missing values are prompted for. The API token is required but can be supplied interactively instead of via flag.
 
@@ -103,7 +110,7 @@ DNS record operations.
 List all DNS records for a zone (all pages).
 
 ```
-cloudflare dns list --zone <domain-or-id> [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare dns list --zone <domain-or-id> [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 | Flag | Required | Description |
@@ -115,7 +122,7 @@ cloudflare dns list --zone <domain-or-id> [--api-token <token>] [--account-id <i
 Get a single DNS record by ID.
 
 ```
-cloudflare dns get --zone <domain-or-id> --id <record-id> [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare dns get --zone <domain-or-id> --id <record-id> [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 | Flag | Required | Description |
@@ -128,7 +135,7 @@ cloudflare dns get --zone <domain-or-id> --id <record-id> [--api-token <token>] 
 Create a DNS record.
 
 ```
-cloudflare dns create --zone <domain-or-id> --type <type> --name <name> --content <content> [--ttl <seconds>] [--priority <n>] [--proxied] [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare dns create --zone <domain-or-id> --type <type> --name <name> --content <content> [--ttl <seconds>] [--priority <n>] [--proxied] [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 | Flag | Required | Description |
@@ -146,7 +153,7 @@ cloudflare dns create --zone <domain-or-id> --type <type> --name <name> --conten
 Update a DNS record (full replacement via PUT).
 
 ```
-cloudflare dns update --zone <domain-or-id> --id <record-id> --type <type> --name <name> --content <content> [--ttl <seconds>] [--priority <n>] [--proxied] [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare dns update --zone <domain-or-id> --id <record-id> --type <type> --name <name> --content <content> [--ttl <seconds>] [--priority <n>] [--proxied] [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 | Flag | Required | Description |
@@ -165,7 +172,7 @@ cloudflare dns update --zone <domain-or-id> --id <record-id> --type <type> --nam
 Delete a DNS record by ID.
 
 ```
-cloudflare dns delete --zone <domain-or-id> --id <record-id> [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare dns delete --zone <domain-or-id> --id <record-id> [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 | Flag | Required | Description |
@@ -184,7 +191,7 @@ API token operations.
 Verify the active API token.
 
 ```
-cloudflare token verify [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare token verify [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 ### token list-permissions
@@ -192,7 +199,7 @@ cloudflare token verify [--api-token <token>] [--account-id <id>] [--api-base-ur
 List available API token permission groups (requires `--account-id`).
 
 ```
-cloudflare token list-permissions [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare token list-permissions [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 ---
@@ -206,7 +213,7 @@ Zone operations.
 List all zones (all pages).
 
 ```
-cloudflare zone list [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare zone list [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 ### zone get
@@ -214,7 +221,7 @@ cloudflare zone list [--api-token <token>] [--account-id <id>] [--api-base-url <
 Get a zone by domain name.
 
 ```
-cloudflare zone get --name <domain> [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare zone get --name <domain> [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 | Flag | Required | Description |
@@ -226,7 +233,7 @@ cloudflare zone get --name <domain> [--api-token <token>] [--account-id <id>] [-
 Create a new zone (requires `--account-id`).
 
 ```
-cloudflare zone create --name <domain> [--jump-start] [--no-jump-start] [--api-token <token>] [--account-id <id>] [--api-base-url <url>]
+cloudflare zone create --name <domain> [--jump-start] [--no-jump-start] [--api-token <token>|--api-key <token>] [--account-id <id>|--account <id>] [--api-base-url <url>]
 ```
 
 | Flag | Required | Description |

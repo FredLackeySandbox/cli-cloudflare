@@ -21,6 +21,16 @@ const CONFIG_DIR = path.join(os.homedir(), '.config', CLI_NAME);
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 const DEFAULT_API_BASE_URL = 'https://api.cloudflare.com/client/v4';
+const OPTION_ALIASES = {
+  apiToken: ['apiToken', 'apiKey'],
+  accountId: ['accountId', 'account'],
+  apiBaseUrl: ['apiBaseUrl'],
+};
+const FLAG_NAMES = {
+  apiToken: '--api-token or --api-key',
+  accountId: '--account-id or --account',
+  apiBaseUrl: '--api-base-url',
+};
 
 export function getConfigPath() {
   return CONFIG_FILE;
@@ -60,23 +70,62 @@ export function saveConfig(config) {
 }
 
 /**
+ * Remove the saved config file if present. Also removes the config directory
+ * when it becomes empty.
+ */
+export function deleteConfig() {
+  let removed = false;
+  try {
+    fs.unlinkSync(CONFIG_FILE);
+    removed = true;
+  } catch (err) {
+    if (err && err.code !== 'ENOENT') throw err;
+  }
+
+  try {
+    fs.rmdirSync(CONFIG_DIR);
+  } catch (err) {
+    if (err && err.code !== 'ENOENT' && err.code !== 'ENOTEMPTY') throw err;
+  }
+
+  return removed;
+}
+
+function getOptionKeys(key) {
+  return OPTION_ALIASES[key] || [key];
+}
+
+function getOptionValue(key, opts) {
+  for (const optionKey of getOptionKeys(key)) {
+    if (
+      opts &&
+      opts[optionKey] !== undefined &&
+      opts[optionKey] !== null &&
+      opts[optionKey] !== ''
+    ) {
+      return opts[optionKey];
+    }
+  }
+  return undefined;
+}
+
+/**
  * Resolve a required value from command-line flags first, then from the
  * saved config file. Throws a structured error if missing from both.
  *
  *   resolveValue('apiToken', opts, config, '--api-token')
  */
 export function resolveValue(key, opts, config, flagName) {
-  if (opts && opts[key] !== undefined && opts[key] !== null && opts[key] !== '') {
-    return opts[key];
-  }
+  const optionValue = getOptionValue(key, opts);
+  if (optionValue !== undefined) return optionValue;
   if (config && config[key] !== undefined && config[key] !== null && config[key] !== '') {
     return config[key];
   }
   const err = new Error(
-    `Missing required value: ${flagName || key}. Pass it as a flag or run "cloudflare configure".`
+    `Missing required value: ${flagName || FLAG_NAMES[key] || key}. Pass it as a flag or run "cloudflare configure".`
   );
   err.code = 'missing_required_value';
-  err.detail = { key, flag: flagName };
+  err.detail = { key, flag: flagName || FLAG_NAMES[key] || key };
   throw err;
 }
 
@@ -86,9 +135,8 @@ export function resolveValue(key, opts, config, flagName) {
  * certain commands (e.g. accountId for zone create).
  */
 export function resolveOptional(key, opts, config) {
-  if (opts && opts[key] !== undefined && opts[key] !== null && opts[key] !== '') {
-    return opts[key];
-  }
+  const optionValue = getOptionValue(key, opts);
+  if (optionValue !== undefined) return optionValue;
   if (config && config[key] !== undefined && config[key] !== null && config[key] !== '') {
     return config[key];
   }
@@ -102,7 +150,7 @@ export function resolveOptional(key, opts, config) {
  */
 export function resolveCredentials(opts) {
   const config = loadConfig();
-  const apiToken = resolveValue('apiToken', opts, config, '--api-token');
+  const apiToken = resolveValue('apiToken', opts, config, FLAG_NAMES.apiToken);
   const accountId = resolveOptional('accountId', opts, config);
   const apiBaseUrl =
     resolveOptional('apiBaseUrl', opts, config) || DEFAULT_API_BASE_URL;
@@ -117,10 +165,10 @@ export function resolveCredentials(opts) {
 export function requireAccountId(creds) {
   if (!creds.accountId) {
     const err = new Error(
-      'Missing required value: --account-id. Pass it as a flag or run "cloudflare configure".'
+      `Missing required value: ${FLAG_NAMES.accountId}. Pass it as a flag or run "cloudflare configure".`
     );
     err.code = 'missing_required_value';
-    err.detail = { key: 'accountId', flag: '--account-id' };
+    err.detail = { key: 'accountId', flag: FLAG_NAMES.accountId };
     throw err;
   }
   return creds.accountId;

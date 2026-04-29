@@ -85,7 +85,9 @@ export function createCloudflareClient(creds) {
 export function withCredentialOptions(cmd) {
   return cmd
     .option('--api-token <token>', 'Cloudflare API token')
+    .option('--api-key <token>', 'Alias for --api-token')
     .option('--account-id <id>', 'Cloudflare account ID (required for some ops)')
+    .option('--account <id>', 'Alias for --account-id')
     .option('--api-base-url <url>', 'Cloudflare API base URL');
 }
 

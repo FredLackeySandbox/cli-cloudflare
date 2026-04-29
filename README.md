@@ -14,8 +14,10 @@ Every command accepts credentials directly as flags. No setup step is required.
 
 ```
 cloudflare zone list --api-token <token>
+cloudflare zone list --api-key <token>
 cloudflare dns list --zone example.com --api-token <token>
-cloudflare catalog --path ./catalogs --account-id <id> --api-token <token>
+cloudflare catalog --path ./catalogs --account <id> --zone example.com --api-key <token>
+cloudflare catalog --path ./catalogs --account <id> --mode full --zone example.com --api-key <token>
 cloudflare dns create \
   --api-token <token> \
   --zone example.com \
@@ -24,18 +26,39 @@ cloudflare dns create \
   --content 192.168.1.1
 ```
 
+For `catalog`, you must pass either one or more exact `--zone` values or explicit `--all`.
+
 If you've already run `cloudflare configure`, you can omit the credential flags:
 
 ```
 cloudflare zone list
-cloudflare catalog --path ./catalogs --account-id <id>
-cloudflare accounts catalog --zone "*.com"
+cloudflare catalog --path ./catalogs --account-id <id> --zone example.com --zone example.net
+cloudflare catalog --path ./catalogs --account-id <id> --mode full --zone example.com
+cloudflare catalog --path ./catalogs --account-id <id> --all
 cloudflare token verify
 ```
 
+`--mode simple` is the default and writes one JSON file per selected zone at:
+
+```
+<path>/<datestamp>/<zone>.json
+```
+
+`--mode full` writes:
+
+```
+<path>/<datestamp>/zones.json
+<path>/<datestamp>/zones/<zone>/zone-details.json
+<path>/<datestamp>/zones/<zone>/zone-settings.json
+<path>/<datestamp>/zones/<zone>/page-rules.json
+<path>/<datestamp>/zones/<zone>/dns-records.json
+```
+
+The `full` layout matches the existing `.data/cloudflare-cli/catalog/...` structure.
+
 ## Configure (Optional)
 
-**The `configure` command is optional.** Every command accepts credentials directly as flags (e.g. `--api-token`, `--account-id`). You never need to run `configure` to use this tool. It exists as a convenience so you don't have to pass the same flags on every invocation.
+**The `configure` command is optional.** Every command accepts credentials directly as flags. `--api-token` and `--api-key` are interchangeable. `--account-id` and `--account` are interchangeable. You never need to run `configure` to use this tool. It exists as a convenience so you don't have to pass the same flags on every invocation.
 
 ```
 cloudflare configure \
@@ -45,11 +68,17 @@ cloudflare configure \
 
 Running `cloudflare configure` without flags prompts for each value interactively. Credentials are stored in `~/.config/cli-cloudflare/config.json` and that file is the only config source. There are no environment variables to set.
 
+To remove the saved config file:
+
+```
+cloudflare configure --reset
+```
+
 If a required credential is missing at runtime, the error tells you exactly what to do:
 
 ```json
 {
-  "error": "Missing required value: --api-token. Pass it as a flag or run \"cloudflare configure\"."
+  "error": "Missing required value: --api-token or --api-key. Pass it as a flag or run \"cloudflare configure\"."
 }
 ```
 
