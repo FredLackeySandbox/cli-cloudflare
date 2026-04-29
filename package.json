@@ -1,6 +1,6 @@
 {
   "name": "@fredlackey/cli-cloudflare",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "AI-first CLI for Cloudflare zone, DNS, and token management",
   "author": {
     "name": "Fred Lackey",

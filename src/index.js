@@ -5,6 +5,7 @@
  */
 
 import { Command } from 'commander';
+import { createRequire } from 'node:module';
 import { setForceJson, setForceInteractive } from './utils/runtime.js';
 import { fatalError } from './utils/errors.js';
 import { configureCommand } from './commands/configure.js';
@@ -13,6 +14,9 @@ import { zoneCommand } from './commands/zone.js';
 import { dnsCommand } from './commands/dns.js';
 import { tokenCommand } from './commands/token.js';
 import { accountsCommand } from './commands/accounts.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json');
 
 export async function cli(argv) {
   // Peek at argv before commander parses so that even pre-parse errors
@@ -25,7 +29,7 @@ export async function cli(argv) {
   program
     .name('cloudflare')
     .description('AI-first CLI for Cloudflare zone, DNS, and token management')
-    .version('0.0.1')
+    .version(version)
     .option('--json', 'force JSON output (default when stdout is not a TTY)')
     .option('--interactive', 'force interactive/human-friendly output')
     .hook('preAction', (thisCommand, actionCommand) => {
